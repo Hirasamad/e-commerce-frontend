@@ -1,33 +1,64 @@
-import { useParams } from "react-router-dom";
-import { useState } from "react";
+import { useState, useEffect } from 'react';
+import { useParams } from 'react-router-dom';
+import { getProductById } from '../api/products';
+import useCartStore from '../store/cartStore';
+import { ShoppingCart } from 'lucide-react';
 
-const products = [
-  { id: 1, name: "iPhone 14", price: 999, img: "https://i.ebayimg.com/images/g/xyz123.jpg" },
-  { id: 2, name: "MacBook Pro", price: 1999, img: "https://i.ebayimg.com/images/g/abc456.jpg" },
-  { id: 3, name: "Samsung Galaxy S22", price: 899, img: "https://i.ebayimg.com/images/g/def789.jpg" },
-];
-
-export default function ProductDetails() {
+const ProductDetail = () => {
   const { id } = useParams();
-  const product = products.find((p) => p.id === parseInt(id));
-  const [cart, setCart] = useState([]);
+  const [product, setProduct] = useState(null);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState('');
+  const addItem = useCartStore((state) => state.addItem);
 
-  const addToCart = () => {
-    setCart([...cart, product]);
-    alert(`${product.name} added to cart!`);
-  };
+  useEffect(() => {
+    const fetchProduct = async () => {
+      try {
+        const data = await getProductById(id);
+        setProduct(data);
+      } catch (err) {
+        setError('Failed to load product');
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    fetchProduct();
+  }, [id]);
+
+  if (loading) return <div>Loading...</div>;
+  if (error) return <div className="text-red-500">{error}</div>;
+  if (!product) return <div>Product not found</div>;
 
   return (
-    <div className="p-6">
-      <img src={product.img} alt={product.name} className="w-full max-w-md mx-auto rounded-lg" />
-      <h2 className="text-2xl font-bold mt-4">{product.name}</h2>
-      <p className="text-xl text-gray-600">${product.price}</p>
-      <button onClick={addToCart} className="bg-green-600 text-white px-4 py-2 mt-4 rounded-md">
-        Add to Cart
-      </button>
+    <div className="max-w-4xl mx-auto">
+      <div className="grid md:grid-cols-2 gap-8">
+        <div>
+          <img
+            src={product.image}
+            alt={product.name}
+            className="w-full rounded-lg shadow-md"
+          />
+        </div>
+        <div>
+          <h1 className="text-3xl font-bold text-gray-800">{product.name}</h1>
+          <p className="text-2xl text-blue-600 mt-4">${product.price}</p>
+          <p className="text-gray-600 mt-4">{product.description}</p>
+          <button
+            onClick={() => addItem(product)}
+            className="mt-8 w-full bg-blue-600 text-white py-3 px-6 rounded-lg hover:bg-blue-700 transition-colors flex items-center justify-center gap-2"
+          >
+            <ShoppingCart size={20} />
+            Add to Cart
+          </button>
+        </div>
+      </div>
     </div>
   );
-}
+};
+
+export default ProductDetail;
+
 
 
 

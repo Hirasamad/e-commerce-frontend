@@ -1,23 +1,40 @@
-import API from "./api";
+import axios from 'axios';
 
-// ✅ User Signup API
-export const signupUser = async (userData) => {
+const API_URL = 'http://localhost:5000/api';
+
+export const login = async (email, password) => {
   try {
-    const response = await API.post("/auth/register", userData);
+    const response = await axios.post(`${API_URL}/auth/login`, { email, password });
+    if (response.data.token) {
+      localStorage.setItem('token', response.data.token);
+      axios.defaults.headers.common['Authorization'] = `Bearer ${response.data.token}`;
+    }
     return response.data;
   } catch (error) {
-    console.error("Signup Error:", error.response?.data?.message || error.message);
-    throw error;
+    throw error.response.data;
   }
 };
 
-// ✅ User Login API
-export const loginUser = async (userData) => {
+export const register = async (name, email, password) => {
   try {
-    const response = await API.post("/auth/login", userData);
+    const response = await axios.post(`${API_URL}/auth/register`, {
+      name,
+      email,
+      password,
+    });
     return response.data;
   } catch (error) {
-    console.error("Login Error:", error.response?.data?.message || error.message);
-    throw error;
+    throw error.response.data;
   }
 };
+
+export const logout = () => {
+  localStorage.removeItem('token');
+  delete axios.defaults.headers.common['Authorization'];
+};
+
+// Set up axios interceptor for token
+const token = localStorage.getItem('token');
+if (token) {
+  axios.defaults.headers.common['Authorization'] = `Bearer ${token}`;
+}

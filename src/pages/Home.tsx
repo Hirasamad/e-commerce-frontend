@@ -1,3 +1,4 @@
+import React from 'react';
 import { Link } from 'react-router-dom';
 import { ShoppingBag, Truck, Shield } from 'lucide-react';
 
@@ -47,3 +48,5 @@ const Home = () => {
     </div>
   );
 };
+
+export default Home;
